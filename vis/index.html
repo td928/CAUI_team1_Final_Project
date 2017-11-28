@@ -1,0 +1,208 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="manifest" href="site.webmanifest">
+        <!-- <link rel="apple-touch-icon" href="icon.png"> -->
+        <!-- Place favicon.ico in the root directory -->
+
+        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.0/css/bootstrap-slider.min.css" />
+        <!-- <link rel="stylesheet" href="main.css"> -->
+        <style>
+            html, body{
+                height: 100vh;
+                width: 100vw;
+                overflow: hidden;
+            }
+
+            #chart{
+                background: #222;
+                text-align: center;
+                height: 100%;
+            }
+
+            #chart svg {
+                height: 100%;
+                max-height: 100%;
+                max-width: 100%;
+            }
+
+            #threshold{
+                width: 100%;
+            }
+
+            .controls {
+                width: 100%;
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                left: 0;
+
+                background: #eee;
+                padding: 0.5em 1em;
+
+                transition: transform 0.6s;
+            }
+
+            .controls.collapsed{
+                transform: translateY(100%);
+            }
+
+            .flip-card{
+                perspective: 600px;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .flip-card .front, .flip-card .back {
+                background: #FFF;
+                transition: transform 1s;
+                transform-style: preserve-3d;
+                backface-visibility: hidden;
+                width: 100%;
+                height: 100%;
+            }
+
+            .flip-card .front {
+                position: absolute;
+                top: 0;
+                z-index: 1;
+            }
+
+            .flip-card .back {
+                overflow: scroll;
+                z-index: -1;
+                transform: rotateY(-180deg);
+            }
+
+            .flip-card.flipped .back {
+                transform: rotateY(0deg);
+            }
+
+            .flip-card.flipped .front {
+                transform: rotateY(180deg);
+            }
+
+
+            .input-box { 
+                position: relative; 
+            }
+            .input-box .unit { 
+                position: absolute; 
+                display: block; 
+                /*left: 5px; */
+                top: 10px; 
+                z-index: 9; 
+            }
+
+        </style>
+    </head>
+    <body>
+        
+        <div class="flip-card">
+            <div class="front">
+                <div id="chart"></div>
+            </div>
+            <div class="back">
+                <table id="table"></table>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <!-- <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-md-6">
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <div class="input-box">
+                                    <input type="number" min="0" max="100" id="threshold-number">
+                                    <div class="unit">%</div>
+                                </div>
+                            </div>
+                            <div class="col-xs-9">
+                                <input type="range" min="0" max="100" value='90' id="threshold">
+                                <input id="threshold" type="text" data-slider-min="0" data-slider-max="100" data-slider-value="80">
+                                <label for="threshold">Select Percentile</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <input type="number" min="0" max="100" id="threshold-number">
+                                    </span>
+                                    <span class="input-group-addon">
+                                        <input type="range" min="0" max="100" value='90' id="threshold" class="form-control">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+
+            <form action="">
+                <div class="form-row">
+                    <div class="col">
+
+                        <label for="threshold">Select Percentile</label>
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <input type="number" min="0" max="100" id="threshold-number">
+                            </span>
+                            <input type="range" min="0" max="100" value='90' id="threshold" class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="col">
+
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-primary" id='to-csv'>To CSV</button>
+                          <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="sr-only">Toggle Dropdown</span>
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#" id='to-geojson'>to GeoJson</a>
+                            <!-- <a class="dropdown-item" href="#">Another action</a>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Separated link</a> -->
+                          </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!-- <script src='https://code.jquery.com/ui/1.12.1/jquery-ui.min.js'></script> -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.0/bootstrap-slider.min.js"></script>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src='main.js'></script>
+        <script>
+            $(document).ready(function(){
+                $('.flip-card').on('click', function(){
+                    $(this).toggleClass('flipped');
+                })
+
+                // $('#threshold').slider().on('slide', function(){ threshold.dispatch('input'); });
+
+                // $('#threshold').noUiSlider({
+                //  start: 40,
+                //  connect: "lower",
+                //  range: {
+                //      min: 0,
+                //      max: 100
+                //  }
+                // }).noUiSlider.on('update', function(){
+                //  $(this).trigger('input');
+                // });
+            })
+        </script>
+    </body>
+</html>
