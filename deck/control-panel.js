@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react';
 import Slider, { Range } from 'rc-slider';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Button, ButtonToolbar, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 
 // import 'rc-slider/assets/index.css';
 
@@ -67,7 +68,7 @@ export default class ControlPanel extends PureComponent {
 
   _renderNumericInput(name, value) {
     return (
-      <div key={name} className="input">
+      <div key={name} className="input input-inline">
         <label>{this._formatSettingName(name)}</label>
         <input type="number" value={value}
           onChange={evt => this.props.onChange(name, Number(evt.target.value))} />
@@ -92,13 +93,14 @@ export default class ControlPanel extends PureComponent {
 
         {this._renderNumericInput('numberOfWorkers', 10)}
         {this._renderNumericInput('numberOfHours', 10)}
-        {this._renderNumericInput('buildingsPer', 10)}
+        {this._renderNumericInput('buildingsPerWorkerHour', 10)}
       </div>
     );
   }
 
   _renderInfo(obj) {
     const {properties} = obj;
+    const {viewport} = this.props.settings;
 
     const data = [2013, 2014, 2015, 2016].map(
       (y) => ({name: y, value: properties['EUI_'+y]})
@@ -120,7 +122,24 @@ export default class ControlPanel extends PureComponent {
            <Line type="monotone" dataKey="value" stroke="#8884d8" activeDot={{r: 8}}/>
          </LineChart>
        </ResponsiveContainer>
+
+       <ButtonToolbar>
+        {/* primary, success, info, warning, danger, link */}
+
+        <Button bsStyle="primary" onClick={this.props.togglePerspective}>{viewport.pitch ? 'Flat' : 'Perspective'}</Button>
+      </ButtonToolbar>
+
+     
       </div>
     );
+
+    /*
+ <ToggleButtonGroup type="checkbox" defaultValue={[1, 3]}>
+        <ToggleButton value={1}>Checkbox 1 (pre-checked)</ToggleButton>
+        <ToggleButton value={2}>Checkbox 2</ToggleButton>
+
+        <ToggleButton value={3}>Checkbox 3 (pre-checked)</ToggleButton>
+      </ToggleButtonGroup>
+    */
   }
 }

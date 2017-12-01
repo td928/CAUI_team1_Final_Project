@@ -1,7 +1,7 @@
 /* global window,document */
 import React, {Component} from 'react';
 import {render} from 'react-dom';
-import MapGL from 'react-map-gl';
+import MapGL, {FlyToInterpolator, LinearInterpolator} from 'react-map-gl';
 import DeckGLOverlay from './deckgl-overlay.js';
 import ControlPanel from './control-panel.js';
 
@@ -24,7 +24,6 @@ Close panel goes back to filters
  * 
 
 */
-
 
 // Set your mapbox token here
 const MAPBOX_TOKEN = process.env.MapboxAccessToken; // eslint-disable-line
@@ -70,6 +69,8 @@ class Root extends Component {
     });
 
     this._updateSettings = this._updateSettings.bind(this);
+    this._goToViewport = this._goToViewport.bind(this);
+    this._togglePerspective = this._togglePerspective.bind(this);
   }
 
   componentDidMount() {
@@ -86,9 +87,27 @@ class Root extends Component {
 
   _onViewportChange(viewport) {
     this.setState({
-      viewport: {...this.state.viewport, ...viewport}
+      lastViewport: this.state.viewport,
+      viewport: {...this.state.viewport, ...viewport},
     });
   }
+
+  _togglePerspective(){
+    this._goToViewport({
+      ...this.state.lastViewport,
+      ...(this.state.viewport.pitch ? {pitch: 0} : {}),
+      width: window.innerWidth,
+      height: window.innerHeight
+    });
+  }
+
+  _goToViewport(viewport) {
+    this._onViewportChange({
+      // transitionInterpolator: new LinearInterpolator(),//FlyToInterpolator(),
+      // transitionDuration: 600,
+      ...viewport,
+    });
+  };
 
   _onHover(event) {
     // console.log(event);
@@ -111,15 +130,11 @@ class Root extends Component {
   }
 
   _updateSettings(newState){
-    this.setState({
-      ...this.state, ...newState
-    });
+    this.setState({ ...newState });
   }
 
   _onClick(event) {
-    this.setState({
-      selectedBuilding: event.object
-    });
+    this.setState({ selectedBuilding: event.object });
   }
 
   _onFilter(name, value){
@@ -145,7 +160,9 @@ class Root extends Component {
         <ControlPanel
           settings={this.state}
           updateSettings={this._updateSettings}
-          onChange={this._onFilter} />
+          onChange={this._onFilter}
+          goToViewport={this._goToViewport}
+          togglePerspective={this._togglePerspective} />
       </div>
     );
   }

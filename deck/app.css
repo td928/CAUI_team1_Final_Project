@@ -12,17 +12,24 @@
   color: #6b6b76;
   outline: none;
   text-transform: uppercase;
-  z-index: 8;
+  z-index: 10;
 }
 
-label {
+.input.input-inline label {
   display: inline-block;
-  width: 100px;
+  font-size: 0.7em;
+  width: 120px;
 }
 
-input {
-  margin-left: 20px;
-  width: 160px;
+.input.input-inline input {
+  margin-left: 10px;
+  width: 50px;
+}
+
+input[type=range] {
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .tooltip {
@@ -33,6 +40,6 @@ input {
   color: #fff;
   max-width: 300px;
   font-size: 10px;
-  z-index: 9;
+  z-index: 11;
   pointer-events: none;
 }

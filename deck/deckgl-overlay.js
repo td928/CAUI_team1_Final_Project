@@ -1,16 +1,17 @@
 import React, {Component} from 'react';
 import DeckGL, {GeoJsonLayer} from 'deck.gl';
 
+
 const LIGHT_SETTINGS = {
-  lightsPosition: [-125, 50.5, 5000, -122.8, 48.5, 8000],
-  ambientRatio: 0.2,
-  diffuseRatio: 0.5,
-  specularRatio: 0.3,
-  lightsStrength: [1.0, 0.0, 2.0, 0.0],
+  lightsPosition: [-0.144528, 49.739968, 8000, -3.807751, 54.104682, 8000],
+  ambientRatio: 0.4,
+  diffuseRatio: 0.6,
+  specularRatio: 0.2,
+  lightsStrength: [0.8, 0.0, 0.8, 0.0],
   numberOfLights: 2
 };
 
-const elevationScale = {min: 1, max: 50};
+const elevationScale = {min: 30, max: 500};
 
 
 export default class DeckGLOverlay extends Component {
@@ -67,30 +68,30 @@ export default class DeckGLOverlay extends Component {
   // }
 
 
-
-
   render() {
     const {viewport, data, colorScale} = this.props;
 
     if (!data) {
       return null;
     }
-    const domain_values = data.features.map((f) => f.properties.avgEER);
-    const cmap = chroma.scale('Spectral').domain([Math.min.apply(Math, domain_values), Math.max.apply(Math, domain_values)]);
+    const domain_values = data.features.map((f) => Math.log(f.properties.avgEER + 10));
+    const cmap = chroma.scale('Spectral').domain([
+      Math.max(...domain_values), Math.min(...domain_values)
+    ]);
 
     const layer = new GeoJsonLayer({
       id: 'buildings',
       data,
-      opacity: 0.8,
+      opacity: 1,
       stroked: false,
       filled: true,
       extruded: true,
-      wireframe: true,
-      // elevationRange: [0, 3000],
-      // elevationScale: this.state.elevationScale,
+      wireframe: false,
+      // elevationRange: [Math.min(...domain_values), Math.max(...domain_values)],
+      // elevationScale: 10,//this.state.elevationScale,
       fp64: true,
-      getElevation: f => f.properties.avgEUI,
-      getFillColor: f => cmap(f.properties.avgEUI).rgb(),
+      getElevation: f => 30*Math.log(f.properties.avgEER + 10),
+      getFillColor: f => cmap(Math.log(f.properties.avgEER + 10)).rgb(),
       getLineColor: f => [255, 255, 255],
       lightSettings: LIGHT_SETTINGS,
       pickable: Boolean(this.props.onHover),
