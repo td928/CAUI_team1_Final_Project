@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {render} from 'react-dom';
 import MapGL from 'react-map-gl';
 import DeckGLOverlay from './deckgl-overlay.js';
-import DeckGLPanel from './deckgl-panel.js';
+import ControlPanel from './control-panel.js';
 
 import {json as requestJson} from 'd3-request';
 
@@ -40,11 +40,26 @@ class Root extends Component {
     super(props);
     this.state = {
       viewport: {
-        ...DeckGLOverlay.defaultViewport,
+        latitude: 40.7128,
+        longitude: -74.0060,
+        zoom: 13,
+        maxZoom: 16,
+        pitch: 60,
+        bearing: 0,
         width: 500,
         height: 500
       },
-      data: null
+      settings: {
+        dragPan: true,
+        dragRotate: true,
+        scrollZoom: true,
+        touchZoomRotate: true,
+        doubleClickZoom: true,
+        minZoom: 0,
+        maxZoom: 20,
+        minPitch: 0,
+        maxPitch: 85
+      }
     };
 
     requestJson(DATA_URL, (error, response) => {
@@ -53,6 +68,8 @@ class Root extends Component {
         this.setState({data: response});
       }
     });
+
+    this._updateSettings = this._updateSettings.bind(this);
   }
 
   componentDidMount() {
@@ -73,9 +90,41 @@ class Root extends Component {
     });
   }
 
-  // _onHover(){
-  //   return ();
-  // }
+  _onHover(event) {
+    // console.log(event);
+    // let countyName = '';
+    // let hoverInfo = null;
+
+    // console.log(event);
+    // const county = event.features && event.features.find(f => f.layer.id === 'counties');
+    // if (county) {
+    //   hoverInfo = {
+    //     lngLat: event.lngLat,
+    //     county: county.properties
+    //   };
+    //   countyName = county.properties.COUNTY;
+    // }
+    // this.setState({
+    //   mapStyle: defaultMapStyle.setIn(['layers', highlightLayerIndex, 'filter', 2], countyName),
+    //   hoverInfo
+    // });
+  }
+
+  _updateSettings(newState){
+    this.setState({
+      ...this.state, ...newState
+    });
+  }
+
+  _onClick(event) {
+    this.setState({
+      selectedBuilding: event.object
+    });
+  }
+
+  _onFilter(name, value){
+
+  }
 
   render() {
     const {viewport, data} = this.state;
@@ -89,9 +138,14 @@ class Root extends Component {
           mapStyle="mapbox://styles/mapbox/dark-v9">
           <DeckGLOverlay viewport={viewport}
             data={data}
-            colorScale={colorScale} />
+            colorScale={colorScale}
+            onClick={this._onClick.bind(this)}
+            onHover={this._onHover} />
         </MapGL>
-        <DeckGLPanel />
+        <ControlPanel
+          settings={this.state}
+          updateSettings={this._updateSettings}
+          onChange={this._onFilter} />
       </div>
     );
   }
