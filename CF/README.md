@@ -4,12 +4,14 @@ These are python scripts of getting peer buildings for different run purposes.
 - web_building_sim.py: This is for web integration. It catches user inputs of key building parameters and returns a list of top 700 peers and their details
 - terminal_building_sim.py: This is similar to the web version above, but designed for terminal interaction. 
 
-# How-To Run
+# How To Run
 **building_sim.py**
 
 Call: python building_sim.py 100 
 
 Returns: a file of json dump of each building and its 100 closest peers and details
+
+Note: the json dump for ~3200 buildings and details of the top 700 peers of each building is about 1.3GB. Please be careful when selecting the number of peers you want to analyze. Our analyze suggests 700 peers is the optimal number of peers for benchmarking. Please consider pre-processing the data if you intend to use the json dump for downstream processing or visualization.
 
 **web_building_sim.py**
 
