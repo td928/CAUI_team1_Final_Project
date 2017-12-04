@@ -19,6 +19,7 @@
   display: inline-block;
   font-size: 0.7em;
   width: 120px;
+  text-transform: uppercase;
 }
 
 .input.input-inline input {
@@ -42,4 +43,32 @@ input[type=range] {
   font-size: 10px;
   z-index: 11;
   pointer-events: none;
+}
+
+
+
+.drawer-tabs{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 1em;
+  z-index: 100;
+}
+
+.drawer-tabs li{
+  float: left;
+  padding: 0.5em;
+  margin: 0;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+.react-drawer-drawer {
+  overflow: scroll;
+}
+
+.user-form {
+  padding: 1em;
 }

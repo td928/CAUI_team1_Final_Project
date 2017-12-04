@@ -10,6 +10,15 @@ const CONFIG = {
     app: resolve('./app.js')
   },
 
+  browser: { fs: false, child_process: false },
+
+  // node: {
+  //   fs: 'empty',
+  //   process: 'mock',
+  //   Buffer: true,
+  //   child_process: "empty",
+  // },
+
   devtool: 'source-map',
 
   module: {
@@ -24,11 +33,12 @@ const CONFIG = {
       }
     }],
     loaders: [
-      // {test: /\.jsx?$/, loader: 'babel', exclude: /node_modules/},
-      // {test: /\.css$/, loader: 'style!css'},
+      {test: /\.jsx?$/, loader: 'babel', exclude: /node_modules/},
+      {test: /\.css$/, loader: 'style!css'},
       {test: /\.css$/, loader: 'style-loader!css-loader' },
       {test: /\.less$/, loader: 'style!css?module&localIdentName=[name]__[local]!less'},
-      {test: /\.(png|jpg|gif)$/, loader: 'file'}
+      // {test: /\.(png|jpg|gif)$/, loader: 'file'},
+      {test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/, loader: 'file-loader'}
     ]
   },
 
@@ -42,7 +52,11 @@ const CONFIG = {
   // Optional: Enables reading mapbox token from environment variable
   plugins: [
     new webpack.EnvironmentPlugin(['MapboxAccessToken'])
-  ]
+  ],
+  // externals: [
+  //   'child_process',
+  //   // 'fs'
+  // ]
 };
 
 // This line enables bundling against src in this repo rather than installed deck.gl module
