@@ -20,6 +20,8 @@ def getData():
 
 	# Ingest and process base data from LL84
 	print("--- Ingesting and Processing Data from LL84 ---")
+	
+	'''
 	url = "https://raw.githubusercontent.com/td928/CAUI_team1_Final_Project/master/merged-w-latlon.csv"
 	df = pd.read_csv(url)
 
@@ -32,8 +34,11 @@ def getData():
 	# Create an Data Frame for only Multifamily Housing with Unique BBL
 	total_df = df.dropna()[df.TYPE_2016 == 'Multifamily Housing']
 	total_df = total_df.groupby("BBL").max().reset_index()
+	'''
 
-	total_df.to_csv("cf_total_df.csv")
+	total_df = pd.read_csv("https://raw.githubusercontent.com/td928/CAUI_team1_Final_Project/master/CF/cf_total_df.csv")
+
+	#total_df.to_csv("cf_total_df.csv")
 
 	print("--- Done Getting Data ---")
 
