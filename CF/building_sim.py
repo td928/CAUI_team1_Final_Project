@@ -33,6 +33,8 @@ def getData():
 	total_df = df.dropna()[df.TYPE_2016 == 'Multifamily Housing']
 	total_df = total_df.groupby("BBL").max().reset_index()
 
+	total_df.to_csv("cf_total_df.csv")
+
 	print("--- Done Getting Data ---")
 
 	return total_df
