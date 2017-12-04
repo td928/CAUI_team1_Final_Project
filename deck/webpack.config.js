@@ -24,7 +24,7 @@ const CONFIG = {
       }
     }],
     loaders: [
-      {test: /\.jsx?$/, loader: 'babel', exclude: /node_modules/},
+      // {test: /\.jsx?$/, loader: 'babel', exclude: /node_modules/},
       // {test: /\.css$/, loader: 'style!css'},
       {test: /\.css$/, loader: 'style-loader!css-loader' },
       {test: /\.less$/, loader: 'style!css?module&localIdentName=[name]__[local]!less'},
