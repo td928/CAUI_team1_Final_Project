@@ -4,14 +4,33 @@ import DeckGL, {GeoJsonLayer} from 'deck.gl';
 
 const LIGHT_SETTINGS = {
   lightsPosition: [-0.144528, 49.739968, 8000, -3.807751, 54.104682, 8000],
-  ambientRatio: 0.4,
-  diffuseRatio: 0.6,
-  specularRatio: 0.2,
-  lightsStrength: [0.8, 0.0, 0.8, 0.0],
+  ambientRatio: 0.85,
+  diffuseRatio: 0.8,
+  specularRatio: 1,
+  lightsStrength: [0.8, 0.3, 0.8, 0.3],
   numberOfLights: 2
 };
 
+// const LIGHT_SETTINGS = {
+//   lightsPosition: [-74.05, 40.7, 8000, -73.5, 41, 5000],
+//   ambientRatio: 0.05,
+//   diffuseRatio: 0.6,
+//   specularRatio: 0.8,
+//   lightsStrength: [3.0, 0.0, 0.5, 0.0],
+//   numberOfLights: 2
+// };
+
+// const LIGHT_SETTINGS = {
+//   lightsPosition: [-125, 50.5, 5000, -122.8, 48.5, 8000],
+//   ambientRatio: 0.2,
+//   diffuseRatio: 0.5,
+//   specularRatio: 0.3,
+//   lightsStrength: [1.0, 0.0, 2.0, 0.0],
+//   numberOfLights: 2
+// };
+
 const elevationScale = {min: 30, max: 500};
+const highlightColor = [255,255,255];
 
 
 export default class DeckGLOverlay extends Component {
@@ -69,9 +88,10 @@ export default class DeckGLOverlay extends Component {
 
 
   render() {
-    const {viewport, data, colorScale} = this.props;
+    const {viewport, data} = this.props;
+    const {selectedBuilding} = this.props.app.state;
 
-    if (!data) {
+    if (!data || !data.features) {
       return null;
     }
     const domain_values = data.features.map((f) => Math.log(f.properties.avgEER + 10));
@@ -89,9 +109,11 @@ export default class DeckGLOverlay extends Component {
       wireframe: false,
       // elevationRange: [Math.min(...domain_values), Math.max(...domain_values)],
       // elevationScale: 10,//this.state.elevationScale,
-      fp64: true,
+      // fp64: true,
       getElevation: f => 30*Math.log(f.properties.avgEER + 10),
-      getFillColor: f => cmap(Math.log(f.properties.avgEER + 10)).rgb(),
+      getFillColor: function(f) {
+        return (selectedBuilding && (f.properties.BBL == selectedBuilding.properties.BBL) ? [255,255,255] : cmap(Math.log(f.properties.avgEER + 10)).rgb())
+      },
       getLineColor: f => [255, 255, 255],
       lightSettings: LIGHT_SETTINGS,
       pickable: Boolean(this.props.onHover),
