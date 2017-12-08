@@ -13,21 +13,71 @@ import {fromJS} from 'immutable';
 
 ** Functionality
 
-Load 3D
-Animated heights/transitions
-Rotate flat
-Dark map
+Most Important::::
+--- Change colormap to quantile or something
+* highlight on form submit / highlight on selected building
+* histogram for peer group, with line plot for yearly
+* histogram for custom building
+xx Add colobar
+----- Format table
+----- Add units
+xx- Add WER and NER
 
+xx--- Change EUI to kWhr
+xxxx- Change to hexagon layer
+
+
+---------
+Building highlighting
+ * highlight on selected building
+ * highlight on form submit
+
+Plotting
+ * histogram for custom building
+ * histogram for peer group
+    * with line plot for yearly
+
+Change EUI to kWhr
+Add units
+Add colobar
+
+Change to hexagon layer
+Format table
+Add WER and NER
+---------
+
+Animated heights/transitions
 Click on building, highlight cluster, change colormap to diverging from mean
-Close panel goes back to filters
- * slider percentile
- * # workers, # hours, # buildings/worker/hr
- * button group for EER, WER, NER
- * 
 
 */
 
+function debounce(fn, delay) {
+  var timer = null;
+  return function () {
+    var context = this, args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      fn.apply(context, args);
+    }, delay);
+  };
+}
 
+const defaultViewport = {
+  altitude: 1.5, 
+  bearing: 0, 
+  height: 726, 
+  latitude : 40.729368597298375 ,
+  longitude : -73.98550576497104 ,
+  maxLatitude : 85.05113 ,
+  maxPitch : 60,
+  maxZoom : 16,
+  minLatitude : -85.05113,
+  minPitch : 0,
+  minZoom : 0,
+  pitch : 60,
+  width : 927,
+  zoom: 10.577956559844765,
+}
 
 // Set your mapbox token here
 const MAPBOX_TOKEN = process.env.MapboxAccessToken; // eslint-disable-line
@@ -42,16 +92,16 @@ class Root extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      viewport: {
-        latitude: 40.7128,
-        longitude: -74.0060,
-        zoom: 13,
-        maxZoom: 16,
-        pitch: 60,
-        bearing: 0,
-        width: 500,
-        height: 500
-      },
+      viewport: defaultViewport,//{
+      //   latitude: 40.7128,
+      //   longitude: -74.0060,
+      //   zoom: 13,
+      //   maxZoom: 16,
+      //   pitch: 60,
+      //   bearing: 0,
+      //   width: 500,
+      //   height: 500
+      // },
       settings: {
         dragPan: true,
         dragRotate: true,
@@ -64,15 +114,15 @@ class Root extends Component {
         maxPitch: 85
       },
       filter_values: {
-        percentile: 90,
+        percentile: 70,
         numberOfWorkers: 10,
         numberOfHours: 8,
         buildingsPerWorkerHour: 1,
         limitByWorkers: 0,
-
-        sortBy: 'avgEER'
       },
-      selectedBuilding: null
+      selectedBuilding: null,
+      blgAttr: 'avgEER',
+      cmap: 'Spectral',
     };
 
     requestJson(DATA_URL, (error, response) => {
@@ -81,13 +131,19 @@ class Root extends Component {
         // this.data = response;
         // this.setState({data: null});
         this.setState({originalData: response, data: response});
-        this._onFilter();
+        this._filterBuildings();
       }
     });
 
-    this._updateSettings = this._updateSettings.bind(this);
+    
     this._goToViewport = this._goToViewport.bind(this);
+    this._onViewportChange = this._onViewportChange.bind(this);
     this._togglePerspective = this._togglePerspective.bind(this);
+
+    this._onClick = this._onClick.bind(this);
+    this._onFilter = this._onFilter.bind(this);
+    this._updateSettings = this._updateSettings.bind(this);
+    this._filterBuildings = this._filterBuildings.bind(this);
   }
 
   componentDidMount() {
@@ -109,6 +165,7 @@ class Root extends Component {
   }
 
   _togglePerspective(){
+    // console.log(this.state.viewport);
     this._goToViewport({
       pitch: this.state.viewport.pitch ? 0 : 60,
       width: window.innerWidth,
@@ -119,7 +176,7 @@ class Root extends Component {
   _goToViewport(viewport) {
     this._onViewportChange({
       // transitionInterpolator: new LinearInterpolator(),//FlyToInterpolator(),
-      // transitionDuration: 600,
+      transitionDuration: 600,
       lastViewport: this.state.viewport,
       ...viewport,
     });
@@ -157,14 +214,13 @@ class Root extends Component {
     })
   }
 
-  _onFilter(name, value){
-    const {originalData, filter_values} = this.state;
+  _filterBuildings() {
+    const {originalData, filter_values, blgAttr} = this.state;
     let data = Object.assign({}, originalData);
-    filter_values[name] = value;
 
     if(data && data.features){
       // sort descending order
-      data.features = data.features.sort((a, b) => b.properties[filter_values.sortBy] - a.properties[filter_values.sortBy])
+      data.features = data.features.sort((a, b) => b.properties[blgAttr] - a.properties[blgAttr])
       // only take the top percentile
       if(filter_values.percentile){
         data.features = data.features.slice(0, data.features.length * (1 - filter_values.percentile/100))
@@ -175,8 +231,15 @@ class Root extends Component {
         data.features = data.features.slice(0, limit)
       }
 
-      this.setState({ data, filter_values });
+      this.setState({ data });
     }
+  }
+
+  _onFilter(name, value){
+    const {filter_values} = this.state;
+    filter_values[name] = value;
+    this.setState({ filter_values });
+    this._filterBuildings();
   }
 
   render() {
@@ -186,23 +249,24 @@ class Root extends Component {
       <div>
         <MapGL
           {...viewport}
-          onViewportChange={this._onViewportChange.bind(this)}
+          onViewportChange={this._onViewportChange}
           mapboxApiAccessToken={MAPBOX_TOKEN}
           mapStyle="mapbox://styles/mapbox/dark-v9">
           <DeckGLOverlay viewport={viewport} app={this}
             data={data}
             selectedBuilding={selectedBuilding}
-            onClick={this._onClick.bind(this)}
+            onClick={this._onClick}
             onHover={this._onHover} />
         </MapGL>
         <ControlPanel
           settings={this.state}
-          updateSettings={this._updateSettings.bind(this)}
-          onChange={this._onFilter.bind(this)}
+          updateSettings={this._updateSettings}
+          onChange={this._onFilter}
+          onAfterChange={this._filterBuildings}
           goToViewport={this._goToViewport}
           togglePerspective={this._togglePerspective} />
 
-        <Drawer data={data} />
+        <Drawer data={data} updateSettings={this._updateSettings} settings={this.state} />
       </div>
     );
   }

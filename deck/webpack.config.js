@@ -10,7 +10,7 @@ const CONFIG = {
     app: resolve('./app.js')
   },
 
-  browser: { fs: false, child_process: false },
+  // browser: { child_process: true },
 
   // node: {
   //   fs: 'empty',
@@ -55,7 +55,6 @@ const CONFIG = {
   ],
   // externals: [
   //   'child_process',
-  //   // 'fs'
   // ]
 };
 

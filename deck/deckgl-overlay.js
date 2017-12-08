@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import DeckGL, {GeoJsonLayer} from 'deck.gl';
+import DeckGL, {GeoJsonLayer, HexagonLayer} from 'deck.gl';
+import * as d3 from "d3";
 
 
 const LIGHT_SETTINGS = {
@@ -10,7 +11,7 @@ const LIGHT_SETTINGS = {
   lightsStrength: [0.8, 0.3, 0.8, 0.3],
   numberOfLights: 2
 };
-
+console.log(d3);
 // const LIGHT_SETTINGS = {
 //   lightsPosition: [-74.05, 40.7, 8000, -73.5, 41, 5000],
 //   ambientRatio: 0.05,
@@ -29,9 +30,23 @@ const LIGHT_SETTINGS = {
 //   numberOfLights: 2
 // };
 
+const colorRange = [
+  [1, 152, 189],
+  [73, 227, 206],
+  [216, 254, 181],
+  [254, 237, 177],
+  [254, 173, 84],
+  [209, 55, 78]
+];
+
+// const defaultProps = {
+//   radius: 100,
+//   upperPercentile: 100,
+//   coverage: 1
+// };
+
 const elevationScale = {min: 30, max: 500};
 const highlightColor = [255,255,255];
-
 
 export default class DeckGLOverlay extends Component {
 
@@ -40,12 +55,12 @@ export default class DeckGLOverlay extends Component {
     // this.startAnimationTimer = null;
     // this.intervalTimer = null;
     this.state = {
-      elevationScale: elevationScale.max//.min
+      // elevationScale: elevationScale.max//.min
     };
 
     // this._startAnimate = this._startAnimate.bind(this);
     // this._animateHeight = this._animateHeight.bind(this);
-
+    this._onClick = this._onClick.bind(this);
   }
 
   // componentDidMount() {
@@ -86,21 +101,35 @@ export default class DeckGLOverlay extends Component {
   //   }
   // }
 
+  _onClick(e) {
+    this.props.onClick(e);
+  }
 
   render() {
-    const {viewport, data} = this.props;
-    const {selectedBuilding} = this.props.app.state;
+    let {viewport, data} = this.props;
+    const {selectedBuilding, selectedNeighborsBBL, blgAttr, cmap} = this.props.app.state;
+    // console.log('b', selectedNeighborsBBL)
+    // if(selectedNeighborsBBL){
+    //   let {originalData} = this.props.app.state;
+    //   data = Object.assign({}, originalData);
+    //   data.features = data.features.slice(100 + Math.floor(100 * Math.random()), 100);
+    //   console.log(data.features)
+    // }
+
 
     if (!data || !data.features) {
       return null;
     }
-    const domain_values = data.features.map((f) => Math.log(f.properties.avgEER + 10));
-    const cmap = chroma.scale('Spectral').domain([
-      Math.max(...domain_values), Math.min(...domain_values)
-    ]);
+    const domain_values = data.features.map((f) => Math.log(f.properties[blgAttr] + 10));
+    const quantiles = d3.scaleQuantile().range(d3.range(5));
+    quantiles.domain(domain_values);
+
+    const colormap = chroma.scale(cmap).domain([0, 5]);
     // const cmap = chroma.scale('Spectral').domain([
     //   Math.max(...domain_values), Math.min(...domain_values)
     // ]);
+
+    console.log(selectedBuilding, this.state.selectedBuilding);
 
     const layer = new GeoJsonLayer({
       id: 'buildings',
@@ -113,26 +142,69 @@ export default class DeckGLOverlay extends Component {
       // elevationRange: [Math.min(...domain_values), Math.max(...domain_values)],
       // elevationScale: 10,//this.state.elevationScale,
       // fp64: true,
-      getElevation: f => 30*Math.log(f.properties.avgEER + 10),
+      getElevation: f => 30*Math.log(f.properties[blgAttr] + 10),
       getFillColor: function(f) {
-        const {selectedBuilding} = this.state;
+        // const {selectedBuilding, selectedNeighborsBBL} = this.state;
+        const color = colormap(quantiles(Math.log(f.properties[blgAttr] + 10)));
+
+        // dim buildings that aren't neighbors when custom is set
+        if(selectedNeighborsBBL){
+          if(!selectedNeighborsBBL.includes(f.properties.BBL)){
+            return chroma('black').alpha(0.3).rgba();
+          }
+        }
+        // dim buildings out of group when building is selected
         if(selectedBuilding){
-          console.log(selectedBuilding);
-          return (f.properties.BBL == selectedBuilding.properties.BBL) ? [255,255,255] : cmap(Math.log(f.properties.avgEER + 10)).rgb();
+          if(f.properties.km_group != selectedBuilding.properties.km_group){
+            return chroma('black').alpha(0.3).rgba();
+          }
         }
-        else{
-          return cmap(Math.log(f.properties.avgEER + 10)).rgb();
-        }
-      }.bind(this.props.app),
+        return color.rgb();
+
+      },//.bind(this.props.app),
       getLineColor: f => [255, 255, 255],
       lightSettings: LIGHT_SETTINGS,
       pickable: Boolean(this.props.onHover),
       onHover: this.props.onHover,
-      onClick: this.props.onClick,
+      onClick: this._onClick,
     });
 
     return (
       <DeckGL {...viewport} layers={ [layer] } initWebGLParameters />
     );
   }
+
+
+  // _renderHeatmap() {
+  //   const {viewport, data, radius, coverage} = this.props;
+
+  //   if (!data || !data.features) {
+  //     return null;
+  //   }
+
+  //   const {features} = data;
+
+  //   const layers = [
+  //     new HexagonLayer({
+  //       id: 'heatmap',
+  //       colorRange,
+  //       coverage,
+  //       data: features,
+  //       elevationRange: [0, 30],
+  //       // elevationScale: this.state.elevationScale,
+  //       extruded: true,
+  //       getPosition: d => [d.properties.Longitude, d.properties.Latitude],
+  //       lightSettings: LIGHT_SETTINGS,
+  //       // onHover: this.props.onHover,
+  //       opacity: 1,
+  //       // pickable: Boolean(this.props.onHover),
+  //       radius,
+  //       // upperPercentile
+  //     })
+  //   ];
+
+  //   return <DeckGL {...viewport} layers={layers} initWebGLParameters />;
+  // }
+
 }
+// DeckGLOverlay.defaultProps = defaultProps;
