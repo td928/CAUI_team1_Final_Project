@@ -4,8 +4,6 @@ import { LineChart, Line, XAxis, YAxis,
           CartesianGrid, Tooltip, Legend, 
           ResponsiveContainer, Label, Bar } from 'recharts';
 import { Button, ButtonToolbar, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
-import ReactTable from 'react-table';
-// import 'react-table/react-table.css';
 
 // import 'rc-slider/assets/index.css';
 
@@ -32,9 +30,13 @@ export default class ControlPanel extends PureComponent {
         {settings.selectedBuilding
          ? this._renderInfo(settings.selectedBuilding)
          : this._renderFilters()}
-         
+
       </Container>
     );
+  }
+
+  _formatSettingName(name) {
+    return name.match(camelPattern).join(' ');
   }
 
 
@@ -68,10 +70,6 @@ export default class ControlPanel extends PureComponent {
 
       this.props.updateSettings({ data, filter_values });
     }
-  }
-
-  _formatSettingName(name) {
-    return name.match(camelPattern).join(' ');
   }
 
 

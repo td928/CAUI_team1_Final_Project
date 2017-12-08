@@ -4,7 +4,7 @@ import {render} from 'react-dom';
 import MapGL from 'react-map-gl';
 import DeckGLOverlay from './deckgl-overlay.js';
 import ControlPanel from './control-panel.js';
-// import Animator from './animator.js';
+import Drawer from './drawer.js';
 import {json as requestJson} from 'd3-request';
 import {fromJS} from 'immutable';
 
@@ -71,7 +71,8 @@ class Root extends Component {
         limitByWorkers: 0,
 
         sortBy: 'avgEER'
-      }
+      },
+      selectedBuilding: null
     };
 
     requestJson(DATA_URL, (error, response) => {
@@ -179,7 +180,7 @@ class Root extends Component {
   }
 
   render() {
-    const {viewport, data} = this.state;
+    const {viewport, data, selectedBuilding} = this.state;
 
     return (
       <div>
@@ -190,7 +191,7 @@ class Root extends Component {
           mapStyle="mapbox://styles/mapbox/dark-v9">
           <DeckGLOverlay viewport={viewport} app={this}
             data={data}
-            colorScale={colorScale}
+            selectedBuilding={selectedBuilding}
             onClick={this._onClick.bind(this)}
             onHover={this._onHover} />
         </MapGL>
@@ -200,6 +201,8 @@ class Root extends Component {
           onChange={this._onFilter.bind(this)}
           goToViewport={this._goToViewport}
           togglePerspective={this._togglePerspective} />
+
+        <Drawer data={data} />
       </div>
     );
   }

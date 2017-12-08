@@ -107,14 +107,11 @@ d3.csv('merged-w-latlon.csv', function(data) {
 
 
 function table2csv($el){
-	// var columns = $el.find('thead tr th').map(function(){ return this.innerHTML; }).get();
-	// var rows = $el.find('tbody tr').map(function(){ 
-	// 	return $(this).find('td').map(function(){ return this.innerHTML; }).get(); 
-	// }).get();
-
+	// get rows
 	return $el.find('tr').map(function(){ 
 		return $(this).find('th, td').map(function(){ 
-			var result = this.innerHTML.replace(/"/g, '""'); 
+			// get cell, escape quotes, commas, and new lines
+			var result = $(this).text().replace(/"/g, '""'); 
 			if (result.search(/("|,|\n)/g) >= 0)
             	result = '"' + result + '"';
             return result;

@@ -98,6 +98,9 @@ export default class DeckGLOverlay extends Component {
     const cmap = chroma.scale('Spectral').domain([
       Math.max(...domain_values), Math.min(...domain_values)
     ]);
+    // const cmap = chroma.scale('Spectral').domain([
+    //   Math.max(...domain_values), Math.min(...domain_values)
+    // ]);
 
     const layer = new GeoJsonLayer({
       id: 'buildings',
@@ -112,8 +115,15 @@ export default class DeckGLOverlay extends Component {
       // fp64: true,
       getElevation: f => 30*Math.log(f.properties.avgEER + 10),
       getFillColor: function(f) {
-        return (selectedBuilding && (f.properties.BBL == selectedBuilding.properties.BBL) ? [255,255,255] : cmap(Math.log(f.properties.avgEER + 10)).rgb())
-      },
+        const {selectedBuilding} = this.state;
+        if(selectedBuilding){
+          console.log(selectedBuilding);
+          return (f.properties.BBL == selectedBuilding.properties.BBL) ? [255,255,255] : cmap(Math.log(f.properties.avgEER + 10)).rgb();
+        }
+        else{
+          return cmap(Math.log(f.properties.avgEER + 10)).rgb();
+        }
+      }.bind(this.props.app),
       getLineColor: f => [255, 255, 255],
       lightSettings: LIGHT_SETTINGS,
       pickable: Boolean(this.props.onHover),
